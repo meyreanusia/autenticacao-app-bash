@@ -1,0 +1,19 @@
+/* reset.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 62.5%;
+    font-family: var(--font-family-padrao);
+  }
+  
+  :root {
+    --principal: #1e7ef4;
+    --creme: #FFFAF3;
+    --azul-escuro: #151e63;
+    --cinza-claro: #EFEFEF;
+    --branco: #FFF;
+    --font-family-padrao: Nunito Sans, sans-serif;
+    --cabecalhos: Paytone One, sans-serif;
+  }
+  
