@@ -13,8 +13,7 @@ export default defineComponent({
 <style scoped>
 .header__container {
   width: 100%;
-  height: 20.0rem; 
-  height: 30vh;
+  height: 20vh;
   background-image: url("/public/logo.png"); 
   background-size: cover;
   background-repeat: no-repeat;

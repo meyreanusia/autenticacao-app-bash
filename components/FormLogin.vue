@@ -1,7 +1,8 @@
 <template>
   <div class="container__form">
-    <h1>Bem-vindo!</h1>
-    <form @submit.prevent="login">
+    <h1 v-if="!loading && !authenticated">Bem-vindo!</h1>
+    <p v-if="authenticated" class="loadingVerify">Verificando autenticidade...</p>
+    <form v-if="!loading && !authenticated" @submit.prevent="login">
       <div>
         <label for="usuario">Usuário</label>
         <input type="text" v-model="usuario" id="usuario" />
@@ -14,7 +15,7 @@
     </form>
     <section class="container__message">
       <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="loading" class="loading">Carregando...</p>
+      <p v-if="loading && !authenticated" class="loading">Carregando...</p>
     </section>
   </div>
 </template>
@@ -30,7 +31,18 @@ export default defineComponent({
       senha: "" as string,
       error: null as string | null,
       loading: false,
+      authenticated: false,
     };
+  },
+
+  mounted() {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      this.authenticated = true;
+      setTimeout(() => {
+      this.$router.push("/userLogin");
+    }, 2000);
+    }
   },
   methods: {
     async login() {
@@ -38,15 +50,13 @@ export default defineComponent({
         this.error = "Usuário e senha são obrigatórios!";
         setTimeout(() => {
           this.error = null;
-        }, 3000);
+        }, 2000);
         return;
       }
       this.loading = true;
       try {
         const config = useRuntimeConfig();
         const token = config.public.appToken;
-        
-
 
         const response = await axios.post(
           "https://api.bashtechnology.com.br/api/open/login",
@@ -63,8 +73,6 @@ export default defineComponent({
         this.usuario = "";
         this.senha = "";
         if (response.data.data.token) {
-          console.log(response.data.data.token);
-
           localStorage.setItem("authToken", response.data.data.token);
           this.$router.push("/userLogin");
         }
@@ -98,13 +106,13 @@ p {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 70vh;
-  background-color: var(--creme);
+  height: 80vh;
+  background-color: white;
 }
 form {
   width: 100%;
   display: flex;
-  background-color: var(--creme);
+  background-color: white;
   flex-direction: column;
 
   align-items: center;
@@ -126,7 +134,8 @@ input {
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: var(--principal) 0.3s, box-shadow 0.3s;
-  background-color: var(--creme);
+  background-color: white;
+
 
   cursor: pointer;
   font-size: 1.2rem;
@@ -180,5 +189,9 @@ button:hover {
 .error {
   font-size: 1.6rem;
   color: red;
+}
+.loadingVerify{
+  font-size: 1.6rem;
+  font-weight: bold;
 }
 </style>
