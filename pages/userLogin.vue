@@ -1,29 +1,38 @@
 <template>
   <div class="userPage">
-    <section v-if="telas.length" class="userPage__container">
-      <nav class="userPage__menu">
-        <ul v-for="tela in telas">
-          <li class="menu-link">
-            <button
-              @click.prevent="selectTela(tela)"
-            >
-              {{ tela.nome }}
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-      <div class="userPage__content">
-        <div v-if="!selectedTela">
-          <h2>Bem-vindo à página do Usuário</h2>
-          <p class="info">
-            Selecione uma página no menu lateral para visualizar o conteúdo!
-          </p>
-        </div>
-        <ConteudoPagina v-if="selectedTela" :tela-nome="selectedTela.nome" />
-      </div>
+    <section v-if="loading" class="loading">
+      <p>Carregando...</p>
     </section>
-    <p v-else class="error">Você não possui nenhum acesso disponível :(</p>
+
+    <section class="main_container">
+
+      <section class="user_container" v-if="!loading">
+        <small class="userName">usuário: {{ usuario.usuario }}</small>
+        <button @click="logout" class="logout-button">Sair</button>
+      </section> 
+
+      <section v-if="telas.length && !loading" class="userPage__container">
+        <nav class="userPage__menu">
+          <ul>
+            <li class="menu-link" v-for="tela in telas" :key="tela.id">
+              <button @click.prevent="selectTela(tela)">
+                {{ tela.nome }}
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="userPage__content">
+          <div>
+            <h2>Bem-vindo à página do Usuário</h2>
+            <p class="info">
+              Selecione uma página no menu lateral para visualizar o conteúdo!
+            </p>
+          </div>
+        </div>
+      </section>
+      <p v-if="telas.length < 0" class="error">Você não possui nenhum acesso disponível :(</p>
+    </section>
   </div>
 </template>
 
@@ -36,6 +45,9 @@ export default defineComponent({
     return {
       telas: [] as Array<{ nome: string; url: string; id: string }>,
       selectedTela: null as { nome: string; url: string; id: string } | null,
+      loading: true,
+      authenticated: true,
+      usuario: {},
     };
   },
   async mounted() {
@@ -55,7 +67,10 @@ export default defineComponent({
             },
           }
         );
+        console.log(response.data.data.usuario);
+        this.usuario = response.data.data.usuario;
         this.telas = response.data.data.telas;
+        this.loading = false;
       } catch (error) {
         console.error(error);
       }
@@ -66,18 +81,28 @@ export default defineComponent({
   methods: {
     selectTela(tela: { nome: string; url: string; id: string } | null) {
       this.selectedTela = tela;
-      console.log(tela?.id);
-      
+
+      if (tela && tela.url) {
+        this.$router.push({
+          path: `userPage${tela.url}`,
+          query: { nome: tela.nome },
+        });
+      }
+    },
+    logout() {
+      localStorage.removeItem("authToken");
+      this.authenticated = false;
+      this.$router.push("/");
     },
   },
 });
 </script>
-<style>
-h2 {
-  font-size: 2.5rem;
-  color: var(--principal);
-}
-.userPage {
+
+<style scoped>
+.main_container{
+  width: 100%;
+  height: auto;
+
   height: 100%;
   height: 70vh;
 
@@ -86,6 +111,11 @@ h2 {
   justify-content: center;
   align-items: center;
 }
+h2 {
+  font-size: 2.5rem;
+  color: var(--principal);
+}
+
 
 .userPage__container {
   display: flex;
@@ -104,6 +134,7 @@ h2 {
   width: 100%;
   height: 100%;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  border-top: none;
   padding: 1rem 1rem;
 }
 
@@ -157,5 +188,29 @@ h2 {
 .info {
   font-size: 1.3rem;
   margin-top: 5rem;
+}
+.loading p {
+  padding: 1rem;
+  font-size: 1.6rem;
+}
+
+.user_container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem 2rem;
+}
+.userName {
+  font-size: 1.2rem;
+}
+.logout-button {
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  color: rgb(196, 23, 23);
+  cursor: pointer;
 }
 </style>
